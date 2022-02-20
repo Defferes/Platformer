@@ -9,7 +9,7 @@ public class OthersAnimation : MonoBehaviour
     [SerializeField] private int framesPerSecond;
     [SerializeField] private bool isCycle;
     [SerializeField] private Sprite[] _sprites;
-    [SerializeField] private UnityEvent _event;
+    [SerializeField] private UnityEvent _OnComplite;
 
     private SpriteRenderer _spriteRenderer;
     private int iteration;
@@ -36,11 +36,12 @@ public class OthersAnimation : MonoBehaviour
             else
             {
                 isPlaying = false;
+                _OnComplite?.Invoke();
+                return;
             }
-            
         }
-        nextFrameTime += timeBetweenFrames;
         _spriteRenderer.sprite = _sprites[iteration];
+        nextFrameTime += timeBetweenFrames;
         iteration++;
         
     }

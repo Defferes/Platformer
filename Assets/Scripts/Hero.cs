@@ -7,14 +7,17 @@ using UnityEngine.InputSystem;
 
 public class Hero : MonoBehaviour
 {
-    [SerializeField] private float speed = 1f;
-    [SerializeField] private float JumpImpulse = 12f;
-    [SerializeField] private float damageJumpImpulse;
-    [SerializeField] private float setRadiusForInteract;
+    [SerializeField] private float _speed;
+    [SerializeField] private float _jumpImpulse;
+    [SerializeField] private float _damageJumpImpulse;
+    [SerializeField] private float _setRadiusForInteract;
     [SerializeField] private LayerCheck _layerCheck;
     [SerializeField] private LayerMask _layerInteract;
 
-    private Vector2 direction;
+    [SerializeField] private CreateDustParticles _createParticles;
+    [SerializeField] private ParticleSystem _particleCoins;
+
+    private Vector2 _derection;
     private Collider2D[] _collider2DForInteract = new Collider2D[1];
     private Rigidbody2D _rigidbody2D;
     private Animator _animator;
@@ -35,11 +38,11 @@ public class Hero : MonoBehaviour
     
     private void FixedUpdate()
     {
-        float directionX = direction.x * speed;
+        float directionX = _derection.x * _speed;
         float directionY = SetDirectionY();
         _rigidbody2D.velocity = new Vector2(directionX,directionY);
         
-        _animator.SetBool(isRunning, direction.x != 0);
+        _animator.SetBool(isRunning, _derection.x != 0);
         _animator.SetBool(isGround,_layerCheck.IsGround);
         _animator.SetFloat(verticalVelocity,_rigidbody2D.velocity.y);
         
@@ -50,7 +53,7 @@ public class Hero : MonoBehaviour
     {
         float yVelocity = _rigidbody2D.velocity.y;
         
-        if (direction.y > 0)
+        if (_derection.y > 0)
         {
             yVelocity = Jumping(ref yVelocity);
         }
@@ -66,12 +69,12 @@ public class Hero : MonoBehaviour
         if (_layerCheck.IsGround) isDoubleJump = true;
         if (_layerCheck.IsGround && _rigidbody2D.velocity.y <= 0f)
         {
-             yVelocity += JumpImpulse;
+             yVelocity += _jumpImpulse;
         }
         else if (isDoubleJump && !_layerCheck.IsGround && _rigidbody2D.velocity.y < 0f)
         {
             isDoubleJump = false;
-            yVelocity = JumpImpulse;
+            yVelocity = _jumpImpulse;
         }
 
         return yVelocity;
@@ -80,25 +83,25 @@ public class Hero : MonoBehaviour
 
     private void SetDirectionHero()
     {
-        if (direction.x > 0)
+        if (_derection.x > 0)
         {
-            _spriteRenderer.flipX = false;
+            transform.localScale = Vector3.one;
         }
-        else if(direction.x < 0)
+        else if(_derection.x < 0)
         {
-            _spriteRenderer.flipX = true;
+            transform.localScale = new Vector3(-1, 1, 1);
         }
     }
     private void OnHorizontalVertical(InputValue context)
     {
-        direction = context.Get<Vector2>();
+        _derection = context.Get<Vector2>();
     }
 
     public void OnPressF(InputValue context)
     {
         if (context.isPressed)
         {
-            var countobj = Physics2D.OverlapCircleNonAlloc(transform.position, setRadiusForInteract,
+            var countobj = Physics2D.OverlapCircleNonAlloc(transform.position, _setRadiusForInteract,
                 _collider2DForInteract, _layerInteract);
             for (int i = 0; i < countobj; i++)
             {
@@ -113,7 +116,17 @@ public class Hero : MonoBehaviour
 
     public void ApplyDamage()
     {
-        _rigidbody2D.velocity = Vector2.up * damageJumpImpulse;
+        _rigidbody2D.velocity = Vector2.up * _damageJumpImpulse;
         _animator.SetTrigger(isHit);
+        if (MoneyData.Money >= 5)
+        {
+            _particleCoins.gameObject.SetActive(true);
+            _particleCoins.Play();
+        }
+    }
+
+    public void SpawnDust()
+    {
+        _createParticles.SpawnDust();
     }
 }
