@@ -21,7 +21,6 @@ public class Hero : MonoBehaviour
     private Collider2D[] _collider2DForInteract = new Collider2D[1];
     private Rigidbody2D _rigidbody2D;
     private Animator _animator;
-    private SpriteRenderer _spriteRenderer;
     private bool isDoubleJump = true;
 
     private static readonly int isGround = Animator.StringToHash("isGround");
@@ -31,7 +30,6 @@ public class Hero : MonoBehaviour
 
     private void Awake()
     {
-        _spriteRenderer = GetComponent<SpriteRenderer>();
         _rigidbody2D = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
     }
@@ -125,8 +123,20 @@ public class Hero : MonoBehaviour
         }
     }
 
-    public void SpawnDust()
+    public void SpawnDust(int index)
     {
-        _createParticles.SpawnDust();
+        if (index == 0 && _layerCheck.IsGround)
+        {
+            _createParticles.transform.localPosition = new Vector3(-0.35f,-0.03f,0f);
+            _createParticles.SpawnDust(index);
+        }
+        if (index == 1 && _rigidbody2D.velocity.y >= 0 && !isDoubleJump)
+        {
+            _createParticles.transform.localPosition = new Vector3(0f,-0.8f,0f);
+            _createParticles.SpawnDust(index);
+        }
+        //_createParticles.transform.localPosition = new Vector3(0f,-0f,0f);
+        //_createParticles.SpawnDust(index);
+        
     }
 }
