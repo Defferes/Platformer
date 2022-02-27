@@ -22,6 +22,7 @@ public class Hero : MonoBehaviour
     private Rigidbody2D _rigidbody2D;
     private Animator _animator;
     private bool isDoubleJump = true;
+    private bool _isDustFall;
 
     private static readonly int isGround = Animator.StringToHash("isGround");
     private static readonly int isRunning = Animator.StringToHash("isRunning");
@@ -33,7 +34,17 @@ public class Hero : MonoBehaviour
         _rigidbody2D = GetComponent<Rigidbody2D>();
         _animator = GetComponent<Animator>();
     }
-    
+
+    private void Update()
+    {
+        if (_isDustFall && _layerCheck.IsGround)
+        {
+            _createParticles.transform.localPosition = new Vector3(0f,0f,0f);
+            _createParticles.SpawnDust(2);
+            _isDustFall = false;
+        }
+    }
+
     private void FixedUpdate()
     {
         float directionX = _derection.x * _speed;
@@ -116,11 +127,23 @@ public class Hero : MonoBehaviour
     {
         _rigidbody2D.velocity = Vector2.up * _damageJumpImpulse;
         _animator.SetTrigger(isHit);
-        if (MoneyData.Money >= 5)
+        if (MoneyData.Money > 0)
         {
-            _particleCoins.gameObject.SetActive(true);
-            _particleCoins.Play();
+            SpawnCoin();
         }
+    }
+
+    private void SpawnCoin()
+    {
+        var coinDropped = Mathf.Min(MoneyData.Money, 5);
+        MoneyData.Money -= coinDropped;
+
+        var Burst = _particleCoins.emission.GetBurst(0);
+        Burst.count = coinDropped;
+        _particleCoins.emission.SetBurst(0,Burst);
+        _particleCoins.transform.position = transform.position;
+        _particleCoins.gameObject.SetActive(true);
+        _particleCoins.Play();
     }
 
     public void SpawnDust(int index)
@@ -135,8 +158,9 @@ public class Hero : MonoBehaviour
             _createParticles.transform.localPosition = new Vector3(0f,-0.8f,0f);
             _createParticles.SpawnDust(index);
         }
-        //_createParticles.transform.localPosition = new Vector3(0f,-0f,0f);
-        //_createParticles.SpawnDust(index);
-        
+        if (index == 2 && !isDoubleJump)
+        {
+            _isDustFall = true;
+        }
     }
 }
